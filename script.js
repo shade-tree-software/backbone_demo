@@ -21,7 +21,24 @@ $(function () {
   });
 
   var Collection = Backbone.Collection.extend({
-    model: Model
+    model: Model,
+    myFetchOne: function () {
+      var $nextId = $('#nextId');
+      var index = $nextId.val();
+      this.set([{id: index++, title: $('#title1').val()}
+      ]);
+      $nextId.val(index);
+    },
+    myFetch: function () {
+      var $nextId = $('#nextId');
+      var index = $nextId.val();
+      this.set([
+        {id: index++, title: $('#title1').val()},
+        {id: index++, title: $('#title2').val()},
+        {id: index++, title: $('#title3').val()}
+      ]);
+      $nextId.val(index);
+    }
   });
 
   var CollectionView = Backbone.View.extend({
@@ -59,6 +76,7 @@ $(function () {
     collection.add(model);
     $nextId.val(index);
   });
+  $("#setOne").click(collection.myFetchOne.bind(collection));
   $("#resetAll").on('click', function () {
     var $nextId = $('#nextId');
     var index = $nextId.val();
@@ -69,16 +87,7 @@ $(function () {
     ]);
     $nextId.val(index);
   });
-  $("#setAll").on('click', function () {
-    var $nextId = $('#nextId');
-    var index = $nextId.val();
-    collection.set([
-      {id: index++, title: $('#title1').val()},
-      {id: index++, title: $('#title2').val()},
-      {id: index++, title: $('#title3').val()}
-    ]);
-    $nextId.val(index);
-  });
+  $("#setAll").click(collection.myFetch.bind(collection));
   $("#changeOne").on('click', function () {
     var model = collection.get($('#id').val());
     model.set({title: $('#title').val()});
