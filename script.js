@@ -5,7 +5,7 @@ $(function () {
 
   var ModelView = Backbone.View.extend({
     initialize: function () {
-      this.model.on('hide', this.hide, this);
+      this.model.on('remove', this.hide, this);
       this.model.on('change', this.render, this);
       console.log('created model view and blank el for record #' + this.model.get('id'));
     },
@@ -16,6 +16,7 @@ $(function () {
     render: function () {
       this.$el.html('<p>' + this.model.get('id') + ': ' + this.model.get('title') + '</p>');
       console.log('changed model view el for record #' + this.model.get('id'));
+      return this;
     }
   });
 
@@ -27,17 +28,12 @@ $(function () {
     el: '#myView',
     initialize: function () {
       this.collection.on('add', this.addOne, this);
-      this.collection.on('remove', this.hideOne, this);
       this.collection.on('reset', this.resetAll, this);
     },
     addOne: function (item) {
       var modelView = new ModelView({model: item});
-      modelView.render();
-      this.$el.append(modelView.el);
+      this.$el.append(modelView.render().el);
       console.log('appended record #' + item.get('id') + ' model view el to collection view el');
-    },
-    hideOne: function (item) {
-      item.trigger('hide');
     },
     resetAll: function (options) {
       this.$el.html(null);
