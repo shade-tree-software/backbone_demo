@@ -1,49 +1,80 @@
 // Code goes here
 
 $(function () {
-  var Model = Backbone.Model.extend({});
-
-  var ModelView = Backbone.View.extend({
+  var Model = Backbone.Model.extend({
     initialize: function () {
+      var id = this.get('id');
+      console.log('model: #' + id + ' initialize');
+    },
+    simulateFetch: function () {
+      var id = this.get('id');
+      console.log('model: #' + id + ' simulateFetch');
+      if ($('#row1id').val() === id) {
+        this.set({id: id, title: $('#row1title').val()});
+      } else if ($('#row2id').val() === id) {
+        this.set({id: id, title: $('#row2title').val()});
+      } else if ($('#row3id').val() === id) {
+        this.set({id: id, title: $('#row3title').val()});
+      }
+    }
+  });
+
+  var SmallModelView = Backbone.View.extend({
+    initialize: function () {
+      var id = this.model.get('id');
+      console.log('small model view: #' + id + ' initialize');
       this.model.on('remove', this.hide, this);
-      this.model.on('change', this.redrawSmall, this);
-      this.model.on('small', this.redrawSmall, this);
-      this.model.on('large', this.redrawLarge, this);
-      console.log('created model view and blank el for record #' + this.model.get('id'));
+      this.model.on('change', this.render, this);
+      console.log('created small model view and blank el for record #' + id);
     },
     hide: function () {
+      var id = this.model.get('id');
+      console.log('small model view: #' + id + ' hide');
       this.remove();
-      console.log('removed model view and el for record #' + this.model.get('id') + ' from the DOM');
+      console.log('removed small model view and el for record #' + id + ' from the DOM');
     },
     render: function () {
-      this.redrawSmall();
-      return this;
-    },
-    redrawSmall: function () {
       var id = this.model.get('id');
+      console.log('small model view: #' + id + ' render');
       this.$el.html('<p class="model' + id + '">' + id + ': ' + this.model.get('title') + '</p>');
-      this.$el.on('click.small', function(){
+      this.$el.click(function () {
         App.navigate("models/" + id, {trigger: true});
       });
-      console.log('rendered small view for record #' + id);
-    },
-    redrawLarge: function () {
+      console.log('rendered small model view for record #' + id);
+      return this;
+    }
+  });
+
+  var LargeModelView = Backbone.View.extend({
+    initialize: function () {
       var id = this.model.get('id');
+      console.log('large model view: #' + id + ' initialize');
+      this.model.on('remove', this.hide, this);
+      this.model.on('change', this.render, this);
+      console.log('created large model view and blank el for record #' + id);
+    },
+    hide: function () {
+      var id = this.model.get('id');
+      console.log('large model view: #' + id + ' hide');
+      this.remove();
+      console.log('removed large model view and el for record #' + id + ' from the DOM');
+    },
+    render: function () {
+      var id = this.model.get('id');
+      console.log('large model view: #' + id + ' render');
       this.$el.html('<p>ID: ' + id + '</p><p>Title: ' + this.model.get('title') + '</p>');
-      this.$el.off('click.small');
-      console.log('rendered large view for record #' + id);
+      console.log('rendered large model view for record #' + id);
+      return this;
     }
   });
 
   var Collection = Backbone.Collection.extend({
-    model: Model,
-    focusOnItem: function (id) {
-      console.log('clicked on el for model #' + id);
-      var model = this.get(id);
-      model.trigger('large');
-      this.set([model]);
+    initialize: function(){
+      console.log('collection: initialize');
     },
+    model: Model,
     simulateFetch: function () {
+      console.log('collection: simulateFetch');
       this.set([
         {id: $('#row1id').val(), title: $('#row1title').val()},
         {id: $('#row2id').val(), title: $('#row2title').val()},
@@ -53,22 +84,20 @@ $(function () {
   });
 
   var CollectionView = Backbone.View.extend({
-    el: '#myView',
     initialize: function () {
+      console.log('collection view: initialize');
       this.collection.on('add', this.addOne, this);
       this.collection.on('reset', this.resetAll, this);
+      this.collection.forEach(this.addOne, this);
     },
     addOne: function (item) {
-      var modelView = new ModelView({model: item});
-      this.$el.append(modelView.render().el);
-      console.log('appended record #' + item.get('id') + ' model view el to collection view el');
-    },
-    redraw: function () {
-      this.collection.forEach(function (model) {
-        model.trigger('small');
-      });
+      console.log('collection view: addOne');
+      var smallModelView = new SmallModelView({model: item});
+      this.$el.append(smallModelView.render().el);
+      console.log('appended record #' + item.get('id') + ' small model view el to collection view el');
     },
     resetAll: function () {
+      console.log('collection view: resetAll');
       this.$el.html(null);
       console.log('cleared collection view el');
       this.collection.forEach(this.addOne, this);
@@ -80,24 +109,26 @@ $(function () {
       "": "index",
       "models/:id": "show"
     },
-    initialize: function(){
+    initialize: function () {
+      console.log('app: initialize');
       this.collection = new Collection();
-      this.collectionView = new CollectionView({collection: this.collection});
-      this.collection.reset([
-        {id: $('#row1id').val(), title: $('#row1title').val()},
-        {id: $('#row2id').val(), title: $('#row2title').val()},
-        {id: $('#row3id').val(), title: $('#row3title').val()}
-      ]);
     },
-    start: function(){
+    start: function () {
+      console.log('app: start');
       Backbone.history.start();
     },
-    index: function(){
-      this.collectionView.redraw();
+    index: function () {
+      console.log('app: index');
+      var collectionView = new CollectionView({collection: this.collection});
       this.collection.simulateFetch();
+      $('#myView').html(collectionView.el);
     },
-    show: function(id){
-      this.collection.focusOnItem(id);
+    show: function (id) {
+      console.log('app: show');
+      var model = new Model({id: id});
+      var largeModelView = new LargeModelView({model: model});
+      model.simulateFetch();
+      $('#myView').html(largeModelView.el);
     }
   }));
 
