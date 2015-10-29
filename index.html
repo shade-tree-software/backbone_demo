@@ -12,33 +12,50 @@
 
 <h1>Backbone Collection View Demo</h1>
 
-<label for="nextId">Next ID</label>
-<input id="nextId" type="number" value="1">
+<h2>Server Database</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>title</th>
+    </tr>
+    <tr>
+        <td>
+            <label for="row1id" hidden></label>
+            <input id="row1id" type="number" value="1">
+        </td>
+        <td>
+            <label for="row1title" hidden></label>
+            <input id="row1title" type="text" value="apple">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="row2id" hidden></label>
+            <input id="row2id" type="number" value="2">
+        </td>
+        <td>
+            <label for="row2title" hidden></label>
+            <input id="row2title" type="text" value="pear">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="row3id" hidden></label>
+            <input id="row3id" type="number" value="3">
+        </td>
+        <td>
+            <label for="row3title" hidden></label>
+            <input id="row3title" type="text" value="banana">
+        </td>
+    </tr>
+</table>
+<br>
+
+<input id="fetchAll" type="button" value="Fetch All">
 <br>
 <br>
-<label for="title1">Title 1</label>
-<input id="title1" type="text" value="apple">
-<input id="addOne" type="button" value="Add One">
-<input id="setOne" type="button" value="Set One">
-<br>
-<label for="title2">Title 2</label>
-<input id="title2" type="text" value="pear">
-<br>
-<label for="title3">Title 3</label>
-<input id="title3" type="text" value="grape">
-<br>
-<br>
-<input id="resetAll" type="button" value="Reset All">
-<input id="setAll" type="button" value="Set All">
-<input id="clearAll" type="button" value="Clear All">
-<br>
-<br>
-<label for="id">ID</label>
-<input id="id" type="number" value="1">
-<label for="title">Title</label>
-<input id="title" type="text" value="banana">
-<input id="changeOne" type="button" value="Change One">
-<input id="clearOne" type="button" value="Clear One">
+
+<h2>Browser View</h2>
 
 <div id="myView"></div>
 

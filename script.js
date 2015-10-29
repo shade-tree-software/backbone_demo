@@ -6,7 +6,9 @@ $(function () {
   var ModelView = Backbone.View.extend({
     initialize: function () {
       this.model.on('remove', this.hide, this);
-      this.model.on('change', this.render, this);
+      this.model.on('change', this.redrawSmall, this);
+      this.model.on('small', this.redrawSmall, this);
+      this.model.on('large', this.redrawLarge, this);
       console.log('created model view and blank el for record #' + this.model.get('id'));
     },
     hide: function () {
@@ -14,30 +16,39 @@ $(function () {
       console.log('removed model view and el for record #' + this.model.get('id') + ' from the DOM');
     },
     render: function () {
-      this.$el.html('<p>' + this.model.get('id') + ': ' + this.model.get('title') + '</p>');
-      console.log('changed model view el for record #' + this.model.get('id'));
+      this.redrawSmall();
       return this;
+    },
+    redrawSmall: function () {
+      var id = this.model.get('id');
+      this.$el.html('<p class="model' + id + '">' + id + ': ' + this.model.get('title') + '</p>');
+      this.$el.on('click.small', function(){
+        App.navigate("models/" + id, {trigger: true});
+      });
+      console.log('rendered small view for record #' + id);
+    },
+    redrawLarge: function () {
+      var id = this.model.get('id');
+      this.$el.html('<p>ID: ' + id + '</p><p>Title: ' + this.model.get('title') + '</p>');
+      this.$el.off('click.small');
+      console.log('rendered large view for record #' + id);
     }
   });
 
   var Collection = Backbone.Collection.extend({
     model: Model,
-    myFetchOne: function () {
-      var $nextId = $('#nextId');
-      var index = $nextId.val();
-      this.set([{id: index++, title: $('#title1').val()}
-      ]);
-      $nextId.val(index);
+    focusOnItem: function (id) {
+      console.log('clicked on el for model #' + id);
+      var model = this.get(id);
+      model.trigger('large');
+      this.set([model]);
     },
-    myFetch: function () {
-      var $nextId = $('#nextId');
-      var index = $nextId.val();
+    simulateFetch: function () {
       this.set([
-        {id: index++, title: $('#title1').val()},
-        {id: index++, title: $('#title2').val()},
-        {id: index++, title: $('#title3').val()}
+        {id: $('#row1id').val(), title: $('#row1title').val()},
+        {id: $('#row2id').val(), title: $('#row2title').val()},
+        {id: $('#row3id').val(), title: $('#row3title').val()}
       ]);
-      $nextId.val(index);
     }
   });
 
@@ -52,44 +63,43 @@ $(function () {
       this.$el.append(modelView.render().el);
       console.log('appended record #' + item.get('id') + ' model view el to collection view el');
     },
-    resetAll: function (options) {
+    redraw: function () {
+      this.collection.forEach(function (model) {
+        model.trigger('small');
+      });
+    },
+    resetAll: function () {
       this.$el.html(null);
       console.log('cleared collection view el');
       this.collection.forEach(this.addOne, this);
     }
   });
 
-  var collection = new Collection();
-  var collectionView = new CollectionView({collection: collection});
+  var App = new (Backbone.Router.extend({
+    routes: {
+      "": "index",
+      "models/:id": "show"
+    },
+    initialize: function(){
+      this.collection = new Collection();
+      this.collectionView = new CollectionView({collection: this.collection});
+      this.collection.reset([
+        {id: $('#row1id').val(), title: $('#row1title').val()},
+        {id: $('#row2id').val(), title: $('#row2title').val()},
+        {id: $('#row3id').val(), title: $('#row3title').val()}
+      ]);
+    },
+    start: function(){
+      Backbone.history.start();
+    },
+    index: function(){
+      this.collectionView.redraw();
+      this.collection.simulateFetch();
+    },
+    show: function(id){
+      this.collection.focusOnItem(id);
+    }
+  }));
 
-  $("#clearOne").on('click', function () {
-    collection.remove(collection.get($('#id').val()));
-  });
-  $("#clearAll").on('click', function () {
-    collection.set([]);
-  });
-  $("#addOne").on('click', function () {
-    var $nextId = $('#nextId');
-    var index = $nextId.val();
-    var model = new Model();
-    model.set({id: index++, title: $('#title1').val()});
-    collection.add(model);
-    $nextId.val(index);
-  });
-  $("#setOne").click(collection.myFetchOne.bind(collection));
-  $("#resetAll").on('click', function () {
-    var $nextId = $('#nextId');
-    var index = $nextId.val();
-    collection.reset([
-      {id: index++, title: $('#title1').val()},
-      {id: index++, title: $('#title2').val()},
-      {id: index++, title: $('#title3').val()}
-    ]);
-    $nextId.val(index);
-  });
-  $("#setAll").click(collection.myFetch.bind(collection));
-  $("#changeOne").on('click', function () {
-    var model = collection.get($('#id').val());
-    model.set({title: $('#title').val()});
-  });
+  App.start();
 });
